@@ -1,0 +1,7 @@
+# fvm
+.fvm
+build
+.dart_tool
+.DS_Store
+.env
+.idea

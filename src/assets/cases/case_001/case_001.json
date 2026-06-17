@@ -1,0 +1,586 @@
+{
+  "schemaVersion": 2,
+  "caseId": "case_001",
+  "title": "雨夜の倉庫事件",
+  "version": 1,
+  "difficulty": "easy",
+  "estimatedPlayMinutes": 30,
+  "startLocationId": "warehouse",
+  "tags": ["港町", "不審死", "聞き込み", "初心者向け"],
+  "setting": {
+    "townName": "ミナト町",
+    "summary": "雨の多い小さな港町。港の再開発計画をめぐり、住民の間に対立が生まれている。",
+    "atmosphere": "雨、古い倉庫、潮の匂い、閉鎖的な町",
+    "currentWeather": "強い雨",
+    "currentDateText": "10月12日の夜"
+  },
+  "victim": {
+    "id": "kurose",
+    "name": "黒瀬 直人",
+    "age": 42,
+    "role": "町長候補",
+    "description": "港の再開発計画を推進していた町長候補。表向きは町を立て直す有能な人物だが、裏では反対派に圧力をかけ、不正会計にも関わっていた。",
+    "publicImage": "町を良くしようとする改革派",
+    "hiddenSide": "再開発のためなら強引な手段も使う人物",
+    "relationships": {
+      "mina": "町の未来を託せる人物だと思われていた",
+      "gorou": "漁師を追い出そうとする敵として恨まれていた",
+      "riku": "表と裏の顔が違う人物だと疑われていた",
+      "yui": "かつては尊敬されていたが、最後には裏切った",
+      "tatsu": "町の偉い人として恐れられていた"
+    }
+  },
+  "truth": {
+    "culpritId": "yui",
+    "summary": "秘書のユイは、黒瀬に不正会計の責任を押し付けられそうになり、倉庫で口論になった。黒瀬に脅されたユイは彼を突き飛ばし、黒瀬は鉄材に頭を打って死亡した。ユイは事故を隠すため、現場から逃げた。",
+    "deathType": "accidental_manslaughter_coverup",
+    "motive": "黒瀬に不正会計の責任を押し付けられそうになったため",
+    "method": "口論の末に突き飛ばし、鉄材に頭を打たせた",
+    "coverUp": "自分が現場にいたこと、赤い傘を使ったこと、懐中時計が自分のものだったことを隠した",
+    "criticalEvidenceIds": ["broken_pocket_watch", "fraud_invoice_copy", "missing_red_umbrella"]
+  },
+  "locations": [
+    {
+      "id": "warehouse",
+      "name": "倉庫街",
+      "description": "古い倉庫が並ぶ港沿いの区域。黒瀬直人が倒れていた事件現場。",
+      "initiallyUnlocked": true,
+      "unlockCondition": null,
+      "connectedLocationIds": ["bakery", "fishing_port", "guard_room"],
+      "npcIds": []
+    },
+    {
+      "id": "bakery",
+      "name": "パン屋",
+      "description": "ミナが営む小さなパン屋。夜遅くまで仕込みの灯りがついている。",
+      "initiallyUnlocked": true,
+      "unlockCondition": null,
+      "connectedLocationIds": ["warehouse"],
+      "npcIds": ["mina"]
+    },
+    {
+      "id": "fishing_port",
+      "name": "漁港",
+      "description": "漁師たちの船が並ぶ港。再開発計画への反発が強い場所。",
+      "initiallyUnlocked": true,
+      "unlockCondition": null,
+      "connectedLocationIds": ["warehouse"],
+      "npcIds": ["gorou"]
+    },
+    {
+      "id": "general_store",
+      "name": "雑貨屋",
+      "description": "リクが営む店。町中の噂が自然と集まる。",
+      "initiallyUnlocked": true,
+      "unlockCondition": null,
+      "connectedLocationIds": ["town_office"],
+      "npcIds": ["riku"]
+    },
+    {
+      "id": "town_office",
+      "name": "町役場出張所",
+      "description": "黒瀬とユイが仕事をしていた出張所。再開発関連の資料が保管されている。",
+      "initiallyUnlocked": false,
+      "unlockCondition": {
+        "type": "topicRevealed",
+        "id": "riku_mentions_town_office_files"
+      },
+      "connectedLocationIds": ["general_store"],
+      "npcIds": ["yui"]
+    },
+    {
+      "id": "guard_room",
+      "name": "警備室",
+      "description": "タツが勤務している小さな警備室。倉庫街の鍵が管理されている。",
+      "initiallyUnlocked": true,
+      "unlockCondition": null,
+      "connectedLocationIds": ["warehouse"],
+      "npcIds": ["tatsu"]
+    }
+  ],
+  "investigationSpots": [
+    {
+      "id": "warehouse_red_umbrella_spot",
+      "locationId": "warehouse",
+      "title": "壁際の赤い影",
+      "shortDescription": "倉庫の壁際に、赤いものが落ちている。",
+      "inspectText": "近づいて見ると、雨に濡れた赤い傘だった。持ち手には町役場出張所の備品番号が貼られている。泥はねから、急いで置き去りにされたように見える。",
+      "afterInspectText": "赤い傘はもう調べた。持ち手の備品番号が、出張所のものだと分かっている。",
+      "unlockCondition": null,
+      "effects": [
+        { "type": "discoverEvidence", "id": "red_umbrella" }
+      ]
+    },
+    {
+      "id": "warehouse_broken_watch_spot",
+      "locationId": "warehouse",
+      "title": "割れた金属片",
+      "shortDescription": "床に小さな金属片が散らばっている。",
+      "inspectText": "木箱の陰に、割れた懐中時計が落ちていた。針は22時15分で止まっている。裏蓋には『Yへ — N.K.』という刻印がある。",
+      "afterInspectText": "割れた懐中時計はもう調べた。22時15分で止まり、裏蓋には『Yへ — N.K.』と刻まれていた。",
+      "unlockCondition": null,
+      "effects": [
+        { "type": "discoverEvidence", "id": "broken_pocket_watch" },
+        { "type": "revealTopic", "id": "watch_has_initials" }
+      ]
+    },
+    {
+      "id": "warehouse_wet_footprints_spot",
+      "locationId": "warehouse",
+      "title": "裏口近くの泥",
+      "shortDescription": "裏口の近くに、雨で流れかけた足跡がある。",
+      "inspectText": "泥に残った足跡は小さめで、深く踏み込まれている。誰かが雨の中、急いで裏口へ向かったようだ。",
+      "afterInspectText": "足跡は雨でかなり崩れているが、小さめの靴跡だったことは覚えている。",
+      "unlockCondition": null,
+      "effects": [
+        { "type": "discoverEvidence", "id": "wet_footprints" },
+        { "type": "revealTopic", "id": "small_wet_footprints" }
+      ]
+    },
+    {
+      "id": "guard_key_log_spot",
+      "locationId": "guard_room",
+      "title": "鍵の貸出帳",
+      "shortDescription": "机の上に、倉庫の鍵の貸出帳が置かれている。",
+      "inspectText": "貸出帳を確認すると、事件当夜に裏口の鍵が正式に貸し出された記録はなかった。だが、予備鍵の欄だけインクがにじんでいる。",
+      "afterInspectText": "貸出帳には、事件当夜の正式な貸出記録はなかった。予備鍵の欄だけが気にかかる。",
+      "unlockCondition": null,
+      "effects": [
+        { "type": "discoverEvidence", "id": "backdoor_key_log" },
+        { "type": "revealTopic", "id": "backdoor_key_unclear" }
+      ]
+    },
+    {
+      "id": "office_missing_umbrella_spot",
+      "locationId": "town_office",
+      "title": "傘立て",
+      "shortDescription": "入口横に、備品の傘が並んでいる。",
+      "inspectText": "傘立てには備品番号つきの傘が並んでいる。しかし番号を追うと、赤い傘が一本足りない。現場の傘の番号と一致するはずの場所だけが空いている。",
+      "afterInspectText": "傘立てには、現場の赤い傘と対応する番号の場所だけ空きがある。",
+      "unlockCondition": {
+        "type": "locationUnlocked",
+        "id": "town_office"
+      },
+      "effects": [
+        { "type": "discoverEvidence", "id": "missing_red_umbrella" },
+        { "type": "revealTopic", "id": "office_missing_red_umbrella" }
+      ]
+    },
+    {
+      "id": "office_trash_invoice_spot",
+      "locationId": "town_office",
+      "title": "廃棄箱",
+      "shortDescription": "資料棚の横に、紙くずの入った廃棄箱がある。",
+      "inspectText": "廃棄箱の奥から、破られた伝票控えが見つかった。貼り合わせると、黒瀬が不正会計の責任をユイに押し付けようとしていた痕跡が読み取れる。",
+      "afterInspectText": "廃棄箱から見つけた伝票控えは、黒瀬とユイの関係を大きく変える証拠だった。",
+      "unlockCondition": {
+        "type": "topicRevealed",
+        "id": "riku_mentions_town_office_files"
+      },
+      "effects": [
+        { "type": "discoverEvidence", "id": "fraud_invoice_copy" },
+        { "type": "revealTopic", "id": "fraud_invoice_found" }
+      ]
+    }
+  ],
+  "npcs": [
+    {
+      "id": "mina",
+      "name": "ミナ",
+      "role": "パン屋",
+      "locationId": "bakery",
+      "personality": "明るく親しみやすいが、面倒ごとを避けたがる。追及されると早口になる。",
+      "speakingStyle": "柔らかい口調。少しくだけた話し方。",
+      "initialTrust": 35,
+      "publicInfo": ["パン屋を営んでいる", "事件当夜も店で仕込みをしていたと言っている"],
+      "knows": ["事件当夜、22時ごろ雨が強かった", "倉庫街の方へ赤い傘を持った人物が歩いていくのを見た", "その人物は女性のように見えた"],
+      "secrets": [
+        {
+          "id": "mina_near_warehouse",
+          "summary": "22時すぎに倉庫街の近くを通った",
+          "reason": "ゴロウに借金返済の相談をしていたため",
+          "revealCondition": { "type": "trustAtLeast", "npcId": "mina", "value": 55 }
+        }
+      ],
+      "lies": [
+        {
+          "id": "mina_alibi_lie",
+          "topic": "ask_alibi",
+          "lie": "店でずっと仕込みをしていた",
+          "truth": "22時すぎに倉庫街の近くを通った",
+          "revealCondition": { "type": "trustAtLeast", "npcId": "mina", "value": 55 }
+        }
+      ]
+    },
+    {
+      "id": "gorou",
+      "name": "ゴロウ",
+      "role": "漁師",
+      "locationId": "fishing_port",
+      "personality": "粗野で短気だが、根は悪くない。疑われると怒る。",
+      "speakingStyle": "ぶっきらぼう。語尾が荒い。",
+      "initialTrust": 25,
+      "publicInfo": ["再開発計画に強く反対している", "黒瀬と何度も口論していた"],
+      "knows": ["黒瀬と再開発計画で揉めていた", "事件当夜、22時10分ごろミナと会っていた", "倉庫街から走り去る人影を見たが、顔は見ていない"],
+      "secrets": [
+        {
+          "id": "gorou_met_mina",
+          "summary": "22時10分ごろミナと会っていた",
+          "reason": "ミナの借金相談を受けていたため",
+          "revealCondition": { "type": "topicRevealed", "id": "mina_near_warehouse" }
+        },
+        {
+          "id": "gorou_wanted_to_hit_kurose",
+          "summary": "黒瀬を殴るつもりで倉庫へ向かおうとしていた",
+          "reason": "漁師仲間を追い出す再開発計画に怒っていたため",
+          "revealCondition": { "type": "trustAtLeast", "npcId": "gorou", "value": 50 }
+        }
+      ],
+      "lies": [
+        {
+          "id": "gorou_alibi_lie",
+          "topic": "ask_alibi",
+          "lie": "ずっと漁港にいた",
+          "truth": "22時10分ごろミナと会っていた",
+          "revealCondition": { "type": "topicRevealed", "id": "mina_near_warehouse" }
+        }
+      ]
+    },
+    {
+      "id": "riku",
+      "name": "リク",
+      "role": "雑貨屋",
+      "locationId": "general_store",
+      "personality": "噂好きで軽い調子だが、観察力がある。危ない話になると声をひそめる。",
+      "speakingStyle": "軽口が多い。親しげに話す。",
+      "initialTrust": 45,
+      "publicInfo": ["町の雑貨屋", "町役場出張所に文具や帳簿用品を納品している"],
+      "knows": ["ユイが最近かなり追い詰められていた", "黒瀬とユイが伝票について言い争っているのを見た", "赤い傘は町役場出張所で使われている備品", "出張所の廃棄箱に破られた伝票控えがあるかもしれない"],
+      "secrets": [
+        {
+          "id": "riku_knows_fraud_invoice",
+          "summary": "黒瀬の不正会計につながる伝票控えの存在を知っている",
+          "reason": "出張所に納品したとき、廃棄箱に破られた伝票を見たため",
+          "revealCondition": { "type": "trustAtLeast", "npcId": "riku", "value": 40 }
+        }
+      ],
+      "lies": []
+    },
+    {
+      "id": "yui",
+      "name": "ユイ",
+      "role": "黒瀬の秘書",
+      "locationId": "town_office",
+      "personality": "冷静で丁寧。感情を表に出さないが、追い詰められると沈黙が増える。",
+      "speakingStyle": "丁寧語。短く整った返答をする。",
+      "initialTrust": 20,
+      "publicInfo": ["黒瀬の秘書", "事件当夜は町役場出張所で資料整理をしていたと話している"],
+      "knows": ["黒瀬の不正会計", "黒瀬に責任を押し付けられそうになっていた", "事件当夜、倉庫にいた", "赤い傘を使った", "割れた懐中時計は自分のもの"],
+      "secrets": [
+        {
+          "id": "yui_was_at_warehouse",
+          "summary": "事件当夜、22時15分ごろ倉庫にいた",
+          "reason": "黒瀬に呼び出され、口論になったため",
+          "revealCondition": { "type": "contradictionUnlocked", "id": "yui_alibi_contradiction" }
+        },
+        {
+          "id": "yui_clock_owner",
+          "summary": "割れた懐中時計はユイのもの",
+          "reason": "以前、黒瀬から贈られたもの",
+          "revealCondition": {
+            "all": [
+              { "type": "evidenceDiscovered", "id": "broken_pocket_watch" },
+              { "type": "topicRevealed", "id": "watch_has_initials" }
+            ]
+          }
+        }
+      ],
+      "lies": [
+        {
+          "id": "yui_alibi_lie",
+          "topic": "ask_alibi",
+          "lie": "22時には町役場出張所で資料整理をしていた",
+          "truth": "22時15分ごろ倉庫にいた",
+          "revealCondition": { "type": "contradictionUnlocked", "id": "yui_alibi_contradiction" }
+        },
+        {
+          "id": "yui_red_umbrella_lie",
+          "topic": "ask_red_umbrella",
+          "lie": "出張所には赤い傘がありますが、私が使ったかは覚えていません",
+          "truth": "赤い傘を使って倉庫へ向かった",
+          "revealCondition": { "type": "contradictionUnlocked", "id": "yui_umbrella_contradiction" }
+        },
+        {
+          "id": "yui_relationship_lie",
+          "topic": "ask_victim_relation",
+          "lie": "黒瀬さんとは仕事上の意見の違いはありましたが、関係は良好でした",
+          "truth": "黒瀬に不正会計の責任を押し付けられそうになっていた",
+          "revealCondition": { "type": "evidenceDiscovered", "id": "fraud_invoice_copy" }
+        }
+      ]
+    },
+    {
+      "id": "tatsu",
+      "name": "タツ",
+      "role": "警備員",
+      "locationId": "guard_room",
+      "personality": "真面目だが気が弱い。緊張すると記憶が曖昧になる。",
+      "speakingStyle": "おどおどした丁寧語。言い切りを避ける。",
+      "initialTrust": 40,
+      "publicInfo": ["倉庫街の警備員", "黒瀬を最初に発見した人物"],
+      "knows": ["22時30分ごろに黒瀬を発見した", "現場付近に赤い傘が落ちていた", "倉庫の裏口が開いていた", "大柄な人物のような影を見たが、顔は見ていない"],
+      "secrets": [],
+      "mistakes": [
+        {
+          "id": "tatsu_mistook_shadow",
+          "topic": "seen_someone",
+          "wrongMemory": "ゴロウのような大柄な人物を見た気がする",
+          "actual": "顔は見ておらず、雨合羽を着た人影を見ただけ",
+          "clarifyCondition": { "type": "evidenceDiscovered", "id": "wet_footprints" }
+        }
+      ],
+      "lies": []
+    }
+  ],
+  "evidence": [
+    {
+      "id": "red_umbrella",
+      "name": "赤い傘",
+      "foundAtLocationId": "warehouse",
+      "description": "倉庫街で見つかった赤い傘。持ち手に町役場出張所の備品番号が貼られている。",
+      "detailText": "出張所の備品番号があり、現場と出張所をつなぐ中間証拠。",
+      "relatedTopics": ["ask_red_umbrella", "seen_someone"],
+      "clueLevel": "medium"
+    },
+    {
+      "id": "broken_pocket_watch",
+      "name": "割れた懐中時計",
+      "foundAtLocationId": "warehouse",
+      "description": "針が22時15分で止まった懐中時計。裏蓋には『Yへ — N.K.』と刻まれている。",
+      "detailText": "黒瀬直人のイニシャルと思われる『N.K.』と、ユイを示す『Y』の刻印がある。事件時刻とユイの関係を示す重要な証拠。",
+      "relatedTopics": ["ask_broken_watch", "ask_alibi", "time_of_incident"],
+      "clueLevel": "critical"
+    },
+    {
+      "id": "wet_footprints",
+      "name": "濡れた足跡",
+      "foundAtLocationId": "warehouse",
+      "description": "倉庫の裏口付近に残っていた小さめの足跡。雨で流れかけている。",
+      "detailText": "ゴロウのような大柄な漁師の足跡とは考えにくい。タツの目撃証言を揺さぶる材料になる。",
+      "relatedTopics": ["seen_someone", "warehouse_backdoor"],
+      "clueLevel": "medium"
+    },
+    {
+      "id": "backdoor_key_log",
+      "name": "裏口の鍵の記録",
+      "foundAtLocationId": "guard_room",
+      "description": "倉庫裏口の鍵の貸出記録。事件当夜、鍵は正式には誰にも貸し出されていない。",
+      "detailText": "正式な貸出記録はないが、予備鍵の管理が曖昧だった可能性がある。",
+      "relatedTopics": ["warehouse_backdoor"],
+      "clueLevel": "low"
+    },
+    {
+      "id": "missing_red_umbrella",
+      "name": "一本足りない赤い傘",
+      "foundAtLocationId": "town_office",
+      "description": "町役場出張所の傘立て。備品番号の並びから、赤い傘が一本足りないことが分かる。",
+      "detailText": "現場の赤い傘と出張所の備品番号が対応している。ユイが出張所から傘を持ち出した可能性を示す。",
+      "relatedTopics": ["ask_red_umbrella"],
+      "clueLevel": "critical"
+    },
+    {
+      "id": "fraud_invoice_copy",
+      "name": "破られた伝票控え",
+      "foundAtLocationId": "town_office",
+      "description": "廃棄箱から見つかった伝票控え。黒瀬が不正会計の責任をユイに押し付けようとしていた痕跡がある。",
+      "detailText": "ユイの動機を示す重要証拠。黒瀬との関係が良好だったという証言と矛盾する。",
+      "relatedTopics": ["fraud_accounting", "ask_victim_relation", "motive"],
+      "clueLevel": "critical"
+    }
+  ],
+  "topics": [
+    { "id": "ask_alibi", "label": "アリバイ", "keywords": ["昨夜", "昨日", "どこ", "何して", "アリバイ", "22時"] },
+    { "id": "ask_victim_relation", "label": "被害者との関係", "keywords": ["黒瀬", "関係", "仲", "恨み", "知り合い"] },
+    { "id": "ask_red_umbrella", "label": "赤い傘", "keywords": ["赤い傘", "傘", "雨具"] },
+    { "id": "ask_broken_watch", "label": "懐中時計", "keywords": ["懐中時計", "時計", "22時15分", "刻印"] },
+    { "id": "warehouse_backdoor", "label": "倉庫の裏口", "keywords": ["裏口", "鍵", "倉庫", "開いていた"] },
+    { "id": "seen_someone", "label": "目撃情報", "keywords": ["見た", "人影", "誰か", "目撃", "走り去る"] },
+    { "id": "fraud_accounting", "label": "不正会計", "keywords": ["不正", "会計", "伝票", "押し付け", "責任"] },
+    { "id": "small_talk", "label": "雑談", "keywords": [] },
+    { "id": "unknown", "label": "不明", "keywords": [] }
+  ],
+  "suggestedQuestions": [
+    { "id": "common_alibi", "npcId": "*", "text": "昨夜はどこにいましたか？", "topic": "ask_alibi", "priority": 10, "unlockCondition": null, "effectsOnAsked": [] },
+    { "id": "common_victim_relation", "npcId": "*", "text": "黒瀬さんとはどんな関係でしたか？", "topic": "ask_victim_relation", "priority": 9, "unlockCondition": null, "effectsOnAsked": [] },
+    { "id": "common_warehouse", "npcId": "*", "text": "倉庫街について知っていることはありますか？", "topic": "warehouse_backdoor", "priority": 8, "unlockCondition": null, "effectsOnAsked": [] },
+    { "id": "ask_red_umbrella_after_find", "npcId": "*", "text": "赤い傘に見覚えはありますか？", "topic": "ask_red_umbrella", "priority": 20, "unlockCondition": { "type": "evidenceDiscovered", "id": "red_umbrella" }, "effectsOnAsked": [] },
+    { "id": "ask_watch_after_find", "npcId": "*", "text": "この懐中時計に見覚えはありますか？", "topic": "ask_broken_watch", "priority": 20, "unlockCondition": { "type": "evidenceDiscovered", "id": "broken_pocket_watch" }, "effectsOnAsked": [] },
+    { "id": "mina_seen_someone", "npcId": "mina", "text": "倉庫街で誰かを見ませんでしたか？", "topic": "seen_someone", "priority": 30, "unlockCondition": null, "effectsOnAsked": [] },
+    { "id": "gorou_kurose_conflict", "npcId": "gorou", "text": "黒瀬さんと揉めていたそうですね？", "topic": "ask_victim_relation", "priority": 30, "unlockCondition": null, "effectsOnAsked": [] },
+    { "id": "riku_about_yui", "npcId": "riku", "text": "ユイさんについて何か知っていますか？", "topic": "fraud_accounting", "priority": 30, "unlockCondition": null, "effectsOnAsked": [] },
+    {
+      "id": "riku_about_office_files",
+      "npcId": "riku",
+      "text": "出張所の伝票について何か知っていますか？",
+      "topic": "fraud_accounting",
+      "priority": 35,
+      "unlockCondition": { "type": "evidenceDiscovered", "id": "broken_pocket_watch" },
+      "effectsOnAsked": [
+        { "type": "revealTopic", "id": "riku_mentions_town_office_files" },
+        { "type": "unlockLocation", "id": "town_office" }
+      ]
+    },
+    { "id": "yui_confirm_alibi", "npcId": "yui", "text": "22時には本当に出張所にいましたか？", "topic": "ask_alibi", "priority": 40, "unlockCondition": { "type": "evidenceDiscovered", "id": "broken_pocket_watch" }, "effectsOnAsked": [] },
+    { "id": "yui_red_umbrella", "npcId": "yui", "text": "赤い傘を使っていませんか？", "topic": "ask_red_umbrella", "priority": 40, "unlockCondition": { "type": "evidenceDiscovered", "id": "red_umbrella" }, "effectsOnAsked": [] },
+    { "id": "tatsu_seen_shadow", "npcId": "tatsu", "text": "現場で誰かを見ましたか？", "topic": "seen_someone", "priority": 30, "unlockCondition": null, "effectsOnAsked": [] }
+  ],
+  "evidenceReactions": [
+    { "id": "yui_react_broken_watch", "npcId": "yui", "evidenceId": "broken_pocket_watch", "reactionType": "scripted", "text": "……その時計を、どこで見つけたんですか。いえ、似たものを見たことがあるだけです。", "unlockCondition": null, "effectsOnReact": [{ "type": "revealTopic", "id": "yui_shaken_by_watch" }], "candidateContradictionIds": ["yui_alibi_contradiction"] },
+    { "id": "yui_react_red_umbrella", "npcId": "yui", "evidenceId": "red_umbrella", "reactionType": "scripted", "text": "出張所には赤い傘が何本かあります。私が使ったものとは限りません。", "unlockCondition": null, "effectsOnReact": [], "candidateContradictionIds": [] },
+    { "id": "yui_react_missing_umbrella", "npcId": "yui", "evidenceId": "missing_red_umbrella", "reactionType": "scripted", "text": "備品の傘なら、誰でも使えます。私だけを疑う理由にはならないはずです。", "unlockCondition": null, "effectsOnReact": [], "candidateContradictionIds": ["yui_umbrella_contradiction"] },
+    { "id": "yui_react_invoice", "npcId": "yui", "evidenceId": "fraud_invoice_copy", "reactionType": "scripted", "text": "……それを見たんですね。黒瀬さんは、私に全部背負わせるつもりでした。", "unlockCondition": null, "effectsOnReact": [{ "type": "revealTopic", "id": "yui_had_motive" }], "candidateContradictionIds": ["yui_motive_contradiction"] },
+    { "id": "mina_react_red_umbrella", "npcId": "mina", "evidenceId": "red_umbrella", "reactionType": "scripted", "text": "あ……その色、見たかも。雨の中、倉庫の方へ歩いていった人が差してた。", "unlockCondition": null, "effectsOnReact": [{ "type": "revealTopic", "id": "mina_saw_red_umbrella_person" }], "candidateContradictionIds": [] },
+    { "id": "mina_react_wet_footprints", "npcId": "mina", "evidenceId": "wet_footprints", "reactionType": "scripted", "text": "小さめの足跡……？ それなら、ゴロウさんのものじゃないと思う。", "unlockCondition": { "type": "trustAtLeast", "npcId": "mina", "value": 45 }, "effectsOnReact": [{ "type": "revealTopic", "id": "gorou_footprints_doubt" }], "candidateContradictionIds": [] },
+    { "id": "gorou_react_wet_footprints", "npcId": "gorou", "evidenceId": "wet_footprints", "reactionType": "scripted", "text": "俺の足跡じゃねえよ。見りゃ分かるだろ、そんな小せえ靴じゃねえ。", "unlockCondition": null, "effectsOnReact": [{ "type": "revealTopic", "id": "gorou_footprints_doubt" }], "candidateContradictionIds": [] },
+    { "id": "gorou_react_invoice", "npcId": "gorou", "evidenceId": "fraud_invoice_copy", "reactionType": "scripted", "text": "黒瀬の野郎……そこまでやってたのか。俺だけじゃなく、あの秘書まで食い物にしてたんだな。", "unlockCondition": null, "effectsOnReact": [], "candidateContradictionIds": [] },
+    { "id": "riku_react_red_umbrella", "npcId": "riku", "evidenceId": "red_umbrella", "reactionType": "scripted", "text": "その備品番号、出張所のやつだね。入口の傘立て、見てみた？", "unlockCondition": null, "effectsOnReact": [{ "type": "revealTopic", "id": "riku_mentions_office_umbrella" }], "candidateContradictionIds": [] },
+    { "id": "riku_react_invoice", "npcId": "riku", "evidenceId": "fraud_invoice_copy", "reactionType": "scripted", "text": "やっぱり残ってたか。黒瀬さんとユイさん、その伝票で揉めてたんだよ。", "unlockCondition": null, "effectsOnReact": [{ "type": "revealTopic", "id": "riku_confirms_invoice_conflict" }], "candidateContradictionIds": [] },
+    { "id": "tatsu_react_red_umbrella", "npcId": "tatsu", "evidenceId": "red_umbrella", "reactionType": "scripted", "text": "そ、それです。現場の近くに落ちていました。最初に見た時から気になっていて……。", "unlockCondition": null, "effectsOnReact": [], "candidateContradictionIds": [] },
+    { "id": "tatsu_react_wet_footprints", "npcId": "tatsu", "evidenceId": "wet_footprints", "reactionType": "scripted", "text": "足跡、小さかったんですか？ じゃあ、私が見た影は……ゴロウさんじゃなかったのかも。", "unlockCondition": null, "effectsOnReact": [{ "type": "revealTopic", "id": "tatsu_doubts_gorou" }], "candidateContradictionIds": [] },
+    { "id": "tatsu_react_key_log", "npcId": "tatsu", "evidenceId": "backdoor_key_log", "reactionType": "scripted", "text": "正式な貸出はありません。でも予備鍵は……すみません、あの夜は確認が甘かったかもしれません。", "unlockCondition": null, "effectsOnReact": [{ "type": "revealTopic", "id": "backdoor_key_unclear" }], "candidateContradictionIds": [] }
+  ],
+  "contradictions": [
+    {
+      "id": "yui_alibi_contradiction",
+      "title": "ユイのアリバイの矛盾",
+      "npcId": "yui",
+      "statementTopic": "ask_alibi",
+      "unlockCondition": {
+        "all": [
+          { "type": "evidenceDiscovered", "id": "broken_pocket_watch" },
+          { "type": "topicRevealed", "id": "watch_has_initials" },
+          { "type": "evidencePresented", "npcId": "yui", "evidenceId": "broken_pocket_watch" }
+        ]
+      },
+      "description": "ユイは22時には出張所にいたと言うが、ユイのものと思われる懐中時計は現場で割れ、22時15分で止まっていた。",
+      "successMessage": "懐中時計の時刻と刻印が、ユイのアリバイを崩した。",
+      "effectsOnUnlock": [{ "type": "revealTopic", "id": "yui_was_at_warehouse" }]
+    },
+    {
+      "id": "yui_umbrella_contradiction",
+      "title": "赤い傘の矛盾",
+      "npcId": "yui",
+      "statementTopic": "ask_red_umbrella",
+      "unlockCondition": {
+        "all": [
+          { "type": "evidenceDiscovered", "id": "red_umbrella" },
+          { "type": "evidenceDiscovered", "id": "missing_red_umbrella" },
+          { "type": "evidencePresented", "npcId": "yui", "evidenceId": "missing_red_umbrella" }
+        ]
+      },
+      "description": "ユイは赤い傘を使った記憶はないと言うが、現場の傘と出張所の欠けた備品番号が一致する。",
+      "successMessage": "赤い傘は、ユイが出張所から持ち出した可能性が高い。",
+      "effectsOnUnlock": [{ "type": "revealTopic", "id": "yui_used_red_umbrella" }]
+    },
+    {
+      "id": "yui_motive_contradiction",
+      "title": "黒瀬との関係の矛盾",
+      "npcId": "yui",
+      "statementTopic": "ask_victim_relation",
+      "unlockCondition": {
+        "all": [
+          { "type": "evidenceDiscovered", "id": "fraud_invoice_copy" },
+          { "type": "evidencePresented", "npcId": "yui", "evidenceId": "fraud_invoice_copy" }
+        ]
+      },
+      "description": "ユイは黒瀬との関係は良好だったと言うが、伝票控えから黒瀬が不正会計をユイに押し付けようとしていたことが分かる。",
+      "successMessage": "ユイには黒瀬を恨む十分な理由があった。",
+      "effectsOnUnlock": [{ "type": "revealTopic", "id": "yui_had_motive" }]
+    },
+    {
+      "id": "gorou_partial_alibi",
+      "title": "ゴロウの犯行時刻の疑い",
+      "npcId": "gorou",
+      "statementTopic": "ask_alibi",
+      "unlockCondition": { "type": "topicRevealed", "id": "mina_near_warehouse" },
+      "description": "ゴロウは22時10分ごろミナと会っていた。完全な無実の証明ではないが、22時15分の現場到達には不自然さがある。",
+      "successMessage": "ゴロウへの疑いは弱まった。",
+      "effectsOnUnlock": [{ "type": "revealTopic", "id": "gorou_met_mina" }]
+    }
+  ],
+  "deduction": {
+    "questions": [
+      {
+        "id": "culprit",
+        "text": "黒瀬直人の死に最も深く関わった人物は？",
+        "type": "single_choice",
+        "choices": [
+          { "id": "mina", "text": "ミナ" },
+          { "id": "gorou", "text": "ゴロウ" },
+          { "id": "riku", "text": "リク" },
+          { "id": "yui", "text": "ユイ" },
+          { "id": "tatsu", "text": "タツ" }
+        ],
+        "correctChoiceId": "yui"
+      },
+      {
+        "id": "critical_evidence",
+        "text": "ユイが現場にいたことを示す最も重要な証拠は？",
+        "type": "single_choice",
+        "choices": [
+          { "id": "red_umbrella", "text": "赤い傘" },
+          { "id": "broken_pocket_watch", "text": "割れた懐中時計" },
+          { "id": "wet_footprints", "text": "濡れた足跡" },
+          { "id": "backdoor_key_log", "text": "裏口の鍵の記録" }
+        ],
+        "correctChoiceId": "broken_pocket_watch"
+      },
+      {
+        "id": "motive",
+        "text": "ユイの動機を示す証拠は？",
+        "type": "single_choice",
+        "choices": [
+          { "id": "fraud_invoice_copy", "text": "破られた伝票控え" },
+          { "id": "missing_red_umbrella", "text": "一本足りない赤い傘" },
+          { "id": "wet_footprints", "text": "濡れた足跡" }
+        ],
+        "correctChoiceId": "fraud_invoice_copy"
+      },
+      {
+        "id": "coverup",
+        "text": "ユイが隠そうとしたことは？",
+        "type": "single_choice",
+        "choices": [
+          { "id": "used_red_umbrella", "text": "赤い傘を使って倉庫へ向かったこと" },
+          { "id": "borrowed_key", "text": "警備室から鍵を借りたこと" },
+          { "id": "met_gorou", "text": "ゴロウと会っていたこと" }
+        ],
+        "correctChoiceId": "used_red_umbrella"
+      }
+    ],
+    "requiredForTrueEnding": ["culprit", "critical_evidence", "motive", "coverup"]
+  },
+  "endings": [
+    {
+      "id": "true_ending",
+      "title": "雨の中の真相",
+      "condition": { "correctDeductionCountAtLeast": 4 },
+      "summary": "ユイは黒瀬に不正会計の責任を押し付けられそうになり、倉庫で口論の末に彼を突き飛ばした。事件は計画殺人ではなく、事故を隠そうとした悲劇だった。",
+      "tone": "bitter"
+    },
+    {
+      "id": "normal_ending",
+      "title": "残された疑問",
+      "condition": { "correctDeductionCountAtLeast": 2 },
+      "summary": "ユイへの疑いは強まったが、真相のすべてを明らかにするには証拠が足りなかった。",
+      "tone": "incomplete"
+    },
+    {
+      "id": "bad_ending",
+      "title": "雨に消えた真実",
+      "condition": { "correctDeductionCountAtLeast": 0 },
+      "summary": "黒瀬直人の死は事故として処理され、港町には重い沈黙だけが残った。",
+      "tone": "bad"
+    }
+  ]
+}

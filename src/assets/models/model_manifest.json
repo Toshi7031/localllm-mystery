@@ -1,0 +1,46 @@
+{
+    "schemaVersion": 1,
+    "defaultModelId": "qwen3_1_7b_instruct_q4",
+    "models": [
+        {
+            "id": "qwen3_1_7b_instruct_q4",
+            "displayName": "軽量モデル",
+            "description": "低〜中スペック端末向け。応答速度を優先したモデル。",
+            "family": "qwen",
+            "modelName": "Qwen3 1.7B Instruct",
+            "parameterSize": "1.7B",
+            "quantization": "Q4_K_M",
+            "format": "gguf",
+            "fileName": "qwen3-1.7b-instruct-q4_k_m.gguf",
+            "fileSizeBytes": null,
+            "recommendedMemoryMb": 3000,
+            "minimumFreeStorageMb": 2000,
+            "downloadUrl": "",
+            "sha256": "",
+            "licenseName": "",
+            "licenseUrl": "",
+            "sourceUrl": "",
+            "notes": "候補。実ファイル選定後にURLとsha256を埋める。"
+        },
+        {
+            "id": "qwen3_4b_instruct_q4",
+            "displayName": "標準モデル",
+            "description": "会話品質を重視したモデル。高めの端末向け。",
+            "family": "qwen",
+            "modelName": "Qwen3 4B Instruct",
+            "parameterSize": "4B",
+            "quantization": "Q4_K_M",
+            "format": "gguf",
+            "fileName": "qwen3-4b-instruct-q4_k_m.gguf",
+            "fileSizeBytes": null,
+            "recommendedMemoryMb": 5000,
+            "minimumFreeStorageMb": 3500,
+            "downloadUrl": "",
+            "sha256": "",
+            "licenseName": "",
+            "licenseUrl": "",
+            "sourceUrl": "",
+            "notes": "候補。標準品質モデルとして検証する。"
+        }
+    ]
+}
