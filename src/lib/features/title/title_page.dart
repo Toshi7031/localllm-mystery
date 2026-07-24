@@ -10,8 +10,9 @@ class TitlePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -99,6 +100,7 @@ class TitlePage extends StatelessWidget {
                 style: TextStyle(color: Colors.grey, fontSize: 12),
               ),
             ],
+          ),
           ),
         ),
       ),

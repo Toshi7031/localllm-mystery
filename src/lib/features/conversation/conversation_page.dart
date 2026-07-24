@@ -225,162 +225,164 @@ class _ConversationPageState extends State<ConversationPage> {
           )
         ],
       ),
-      body: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12.0),
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            width: double.infinity,
-            child: const Text(
-              'おすすめ質問を使うか、自由に質問できます。証拠を見つけたら突きつけて反応を見ましょう。',
-              style: TextStyle(fontWeight: FontWeight.bold),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12.0),
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              width: double.infinity,
+              child: const Text(
+                'おすすめ質問を使うか、自由に質問できます。証拠を見つけたら突きつけて反応を見ましょう。',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  child: Text(npc.name[0]),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    child: Text(npc.name[0]),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('${npc.name} / ${npc.role}', style: Theme.of(context).textTheme.titleMedium),
+                        Text(npc.personality, style: Theme.of(context).textTheme.bodySmall),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text('${npc.name} / ${npc.role}', style: Theme.of(context).textTheme.titleMedium),
-                      Text(npc.personality, style: Theme.of(context).textTheme.bodySmall),
+                      const Text('信頼度', style: TextStyle(fontSize: 12)),
+                      Text('$trust', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     ],
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    const Text('信頼度', style: TextStyle(fontSize: 12)),
-                    Text('$trust', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  ],
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const Divider(),
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: logs.length + (_streamingRawText != null ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (_streamingRawText != null && index == logs.length) {
+            const Divider(),
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(16),
+                itemCount: logs.length + (_streamingRawText != null ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (_streamingRawText != null && index == logs.length) {
+                    return Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        padding: const EdgeInsets.all(12),
+                        constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width * 0.7),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withAlpha(51),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.withAlpha(100), width: 1),
+                        ),
+                        child: Text(
+                          _getMaskedText(_streamingRawText!).isEmpty
+                              ? '思考中… (思考内容は伏せ字で表示されます)'
+                              : _getMaskedText(_streamingRawText!),
+                          style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                        ),
+                      ),
+                    );
+                  }
+
+                  final log = logs[index];
+                  final isPlayer = log.speaker == 'player';
+                  final isSystem = log.speaker == 'system';
+                  
+                  if (isSystem) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Center(
+                        child: Text(
+                          log.text,
+                          style: const TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    );
+                  }
+                  
                   return Align(
-                    alignment: Alignment.centerLeft,
+                    alignment:
+                        isPlayer ? Alignment.centerRight : Alignment.centerLeft,
                     child: Container(
                       margin: const EdgeInsets.symmetric(vertical: 4),
                       padding: const EdgeInsets.all(12),
                       constraints: BoxConstraints(
                           maxWidth: MediaQuery.of(context).size.width * 0.7),
                       decoration: BoxDecoration(
-                        color: Colors.grey.withAlpha(51),
+                        color: isPlayer
+                            ? Colors.blue.withAlpha(51)
+                            : Colors.grey.withAlpha(51),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.withAlpha(100), width: 1),
                       ),
-                      child: Text(
-                        _getMaskedText(_streamingRawText!).isEmpty
-                            ? '思考中… (思考内容は伏せ字で表示されます)'
-                            : _getMaskedText(_streamingRawText!),
-                        style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
-                      ),
-                    ),
-                  );
-                }
-
-                final log = logs[index];
-                final isPlayer = log.speaker == 'player';
-                final isSystem = log.speaker == 'system';
-                
-                if (isSystem) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Center(
-                      child: Text(
-                        log.text,
-                        style: const TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  );
-                }
-                
-                return Align(
-                  alignment:
-                      isPlayer ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    padding: const EdgeInsets.all(12),
-                    constraints: BoxConstraints(
-                        maxWidth: MediaQuery.of(context).size.width * 0.7),
-                    decoration: BoxDecoration(
-                      color: isPlayer
-                          ? Colors.blue.withAlpha(51)
-                          : Colors.grey.withAlpha(51),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(log.text),
-                  ),
-                );
-              },
-            ),
-          ),
-          if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: CircularProgressIndicator(),
-            ),
-          if (suggestedQuestions.isNotEmpty)
-            SizedBox(
-              height: 50,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                itemCount: suggestedQuestions.length,
-                itemBuilder: (context, index) {
-                  final q = suggestedQuestions[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: ActionChip(
-                      label: Text(q.text),
-                      onPressed: _isLoading
-                          ? null
-                          : () => _sendMessage(q.text,
-                              suggestedQuestionId: q.id),
+                      child: Text(log.text),
                     ),
                   );
                 },
               ),
             ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _textController,
-                    decoration: const InputDecoration(
-                      hintText: '自由に発言する...',
-                      border: OutlineInputBorder(),
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: CircularProgressIndicator(),
+              ),
+            if (suggestedQuestions.isNotEmpty)
+              SizedBox(
+                height: 50,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  itemCount: suggestedQuestions.length,
+                  itemBuilder: (context, index) {
+                    final q = suggestedQuestions[index];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: ActionChip(
+                        label: Text(q.text),
+                        onPressed: _isLoading
+                            ? null
+                            : () => _sendMessage(q.text,
+                                suggestedQuestionId: q.id),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _textController,
+                      decoration: const InputDecoration(
+                        hintText: '自由に発言する...',
+                        border: OutlineInputBorder(),
+                      ),
+                      onSubmitted: _isLoading ? null : (val) => _sendMessage(val),
                     ),
-                    onSubmitted: _isLoading ? null : (val) => _sendMessage(val),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: _isLoading
-                      ? null
-                      : () => _sendMessage(_textController.text),
-                ),
-              ],
+                  IconButton(
+                    icon: const Icon(Icons.send),
+                    onPressed: _isLoading
+                        ? null
+                        : () => _sendMessage(_textController.text),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
