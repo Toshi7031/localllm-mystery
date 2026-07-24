@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../app/game_provider.dart';
+import '../../shared/widgets/instruction_banner.dart';
+import '../../shared/widgets/loading_view.dart';
 import '../conversation/conversation_page.dart';
 
 class LocationPage extends StatelessWidget {
@@ -10,7 +12,7 @@ class LocationPage extends StatelessWidget {
     final controller = GameProvider.of(context);
     final state = controller.state;
     if (state == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(body: LoadingView());
     }
 
     final locId = state.currentLocationId;
@@ -24,14 +26,8 @@ class LocationPage extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.all(12.0),
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              width: double.infinity,
-              child: const Text(
-                '気になる場所を調べるか、住人に話を聞いてみましょう。',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+            const InstructionBanner(
+              text: '気になる場所を調べるか、住人に話を聞いてみましょう。',
             ),
             Expanded(
               child: ListView(

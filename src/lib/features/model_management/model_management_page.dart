@@ -4,6 +4,9 @@ import '../../app/game_provider.dart';
 import '../../app/model_manager_provider.dart';
 import '../../core/llm/llama_cpp_llm_service.dart';
 import '../../core/model/model_manifest_entry.dart';
+import '../../shared/widgets/empty_view.dart';
+import '../../shared/widgets/instruction_banner.dart';
+import '../../shared/widgets/loading_view.dart';
 
 class ModelManagementPage extends StatelessWidget {
   const ModelManagementPage({super.key});
@@ -18,7 +21,7 @@ class ModelManagementPage extends StatelessWidget {
         future: modelManager.loadManifest(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const LoadingView(message: 'マニフェスト読み込み中...');
           }
           if (snapshot.hasError) {
             return Center(child: Text('エラーが発生しました: ${snapshot.error}'));
@@ -26,7 +29,10 @@ class ModelManagementPage extends StatelessWidget {
 
           final manifest = modelManager.manifest;
           if (manifest == null || manifest.models.isEmpty) {
-            return const Center(child: Text('モデルが見つかりません。'));
+            return const EmptyView(
+              message: 'モデルが見つかりません。',
+              icon: Icons.memory,
+            );
           }
 
           final activeLlm = GameProvider.of(context).llmService;
@@ -42,10 +48,8 @@ class ModelManagementPage extends StatelessWidget {
           return SafeArea(
             child: Column(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12.0),
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  width: double.infinity,
+                InstructionBanner(
+                  text: '【LLM 動作ステータス】',
                   child: Column(
                     children: [
                       const Text(

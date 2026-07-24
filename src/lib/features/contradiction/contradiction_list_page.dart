@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../app/game_provider.dart';
+import '../../shared/widgets/empty_view.dart';
 
 class ContradictionListPage extends StatelessWidget {
   const ContradictionListPage({super.key});
@@ -16,14 +17,9 @@ class ContradictionListPage extends StatelessWidget {
       appBar: AppBar(title: Text('${caseData.title} - 矛盾一覧')),
       body: SafeArea(
         child: unlockedContradictionIds.isEmpty
-            ? const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text(
-                    'まだ矛盾は見つかっていません。\n証拠を集め、関係者に突きつけてみましょう。',
-                    textAlign: TextAlign.center,
-                  ),
-                ),
+            ? const EmptyView(
+                message: 'まだ矛盾は見つかっていません。\n証拠を集め、関係者に突きつけてみましょう。',
+                icon: Icons.warning_amber_rounded,
               )
             : ListView.builder(
                 itemCount: unlockedContradictionIds.length,

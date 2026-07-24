@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../app/game_provider.dart';
+import '../../shared/widgets/empty_view.dart';
+import '../../shared/widgets/instruction_banner.dart';
 import 'evidence_detail_page.dart';
 
 class EvidenceListPage extends StatelessWidget {
@@ -18,25 +20,14 @@ class EvidenceListPage extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.all(12.0),
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              width: double.infinity,
-              child: const Text(
-                '証拠は会話中に突きつけることで、新しい矛盾につながることがあります。',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+            const InstructionBanner(
+              text: '証拠は会話中に突きつけることで、新しい矛盾につながることがあります。',
             ),
             Expanded(
               child: evidenceIds.isEmpty
-                  ? const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Text(
-                          'まだ証拠を見つけていません。\n場所を調べて証拠を探しましょう。',
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
+                  ? const EmptyView(
+                      message: 'まだ証拠を見つけていません。\n場所を調べて証拠を探しましょう。',
+                      icon: Icons.search_off,
                     )
                   : ListView.builder(
                       itemCount: evidenceIds.length,

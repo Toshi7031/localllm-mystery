@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../app/game_provider.dart';
+import '../../core/llm/llm_output_sanitizer.dart';
+import '../../shared/widgets/instruction_banner.dart';
 
 class ConversationPage extends StatefulWidget {
   final String npcId;
@@ -14,57 +16,6 @@ class _ConversationPageState extends State<ConversationPage> {
   final _scrollController = ScrollController();
   bool _isLoading = false;
   String? _streamingRawText;
-
-  String _getMaskedText(String rawText) {
-    if (!rawText.contains('<think>')) {
-      return _stripPrefixes(rawText);
-    }
-
-    final buffer = StringBuffer();
-    bool insideThink = false;
-    int currentIndex = 0;
-    
-    while (currentIndex < rawText.length) {
-      if (!insideThink) {
-        final nextThink = rawText.indexOf('<think>', currentIndex);
-        if (nextThink == -1) {
-          buffer.write(rawText.substring(currentIndex));
-          break;
-        } else {
-          buffer.write(rawText.substring(currentIndex, nextThink));
-          insideThink = true;
-          currentIndex = nextThink + '<think>'.length;
-        }
-      } else {
-        final nextEndThink = rawText.indexOf('</think>', currentIndex);
-        if (nextEndThink == -1) {
-          final textToMask = rawText.substring(currentIndex);
-          buffer.write(textToMask.replaceAll(RegExp(r'[^\s]'), '█'));
-          break;
-        } else {
-          final textToMask = rawText.substring(currentIndex, nextEndThink);
-          buffer.write(textToMask.replaceAll(RegExp(r'[^\s]'), '█'));
-          insideThink = false;
-          currentIndex = nextEndThink + '</think>'.length;
-        }
-      }
-    }
-    
-    var text = buffer.toString().trim();
-    return _stripPrefixes(text);
-  }
-
-  String _stripPrefixes(String text) {
-    var stripped = text;
-    final prefixesToStrip = ['プレイヤー:', 'あなた:', '#'];
-    for (final prefix in prefixesToStrip) {
-      final index = stripped.indexOf(prefix);
-      if (index != -1) {
-        stripped = stripped.substring(0, index);
-      }
-    }
-    return stripped.isEmpty && _streamingRawText != null && _streamingRawText!.isNotEmpty ? '...' : stripped;
-  }
 
   @override
   void dispose() {
@@ -228,14 +179,8 @@ class _ConversationPageState extends State<ConversationPage> {
       body: SafeArea(
         child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.all(12.0),
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              width: double.infinity,
-              child: const Text(
-                'おすすめ質問を使うか、自由に質問できます。証拠を見つけたら突きつけて反応を見ましょう。',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+            const InstructionBanner(
+              text: 'おすすめ質問を使うか、自由に質問できます。証拠を見つけたら突きつけて反応を見ましょう。',
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -272,6 +217,7 @@ class _ConversationPageState extends State<ConversationPage> {
                 itemCount: logs.length + (_streamingRawText != null ? 1 : 0),
                 itemBuilder: (context, index) {
                   if (_streamingRawText != null && index == logs.length) {
+                    final masked = LlmOutputSanitizer.maskThinkingProcess(_streamingRawText!);
                     return Align(
                       alignment: Alignment.centerLeft,
                       child: Container(
@@ -285,9 +231,9 @@ class _ConversationPageState extends State<ConversationPage> {
                           border: Border.all(color: Colors.grey.withAlpha(100), width: 1),
                         ),
                         child: Text(
-                          _getMaskedText(_streamingRawText!).isEmpty
+                          masked.isEmpty
                               ? '思考中… (思考内容は伏せ字で表示されます)'
-                              : _getMaskedText(_streamingRawText!),
+                              : masked,
                           style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
                         ),
                       ),

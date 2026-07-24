@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../app/game_provider.dart';
+import '../../shared/widgets/instruction_banner.dart';
+import '../../shared/widgets/loading_view.dart';
 import '../location/location_page.dart';
 
 class MapPage extends StatelessWidget {
@@ -10,7 +12,7 @@ class MapPage extends StatelessWidget {
     final controller = GameProvider.of(context);
     final state = controller.state;
     if (state == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(body: LoadingView());
     }
 
     final unlockedLocations = state.unlockedLocationIds.toList();
@@ -23,14 +25,8 @@ class MapPage extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.all(12.0),
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              width: double.infinity,
-              child: const Text(
-                '場所を選んで調査を進めましょう。',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+            const InstructionBanner(
+              text: '場所を選んで調査を進めましょう。',
             ),
             Expanded(
               child: ListView.builder(
