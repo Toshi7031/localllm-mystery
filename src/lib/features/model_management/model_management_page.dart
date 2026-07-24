@@ -7,7 +7,7 @@ class ModelManagementPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final modelManager = ModelManagerProvider.of(context);
+    final modelManager = ModelManagerProvider.read(context);
 
     return Scaffold(
       appBar: AppBar(title: const Text('モデル管理')),
@@ -55,29 +55,23 @@ class ModelManagementPage extends StatelessWidget {
   }
 }
 
-class _ModelListItem extends StatefulWidget {
+class _ModelListItem extends StatelessWidget {
   final ModelManifestEntry modelEntry;
 
   const _ModelListItem({required this.modelEntry});
 
   @override
-  State<_ModelListItem> createState() => _ModelListItemState();
-}
-
-class _ModelListItemState extends State<_ModelListItem> {
-  bool _isDownloading = false;
-  double _progress = 0.0;
-
-  @override
   Widget build(BuildContext context) {
-    final modelManager = ModelManagerProvider.of(context);
-    final modelEntry = widget.modelEntry;
+    final modelManager = ModelManagerProvider.read(context);
+    final modelEntry = this.modelEntry;
 
-    return FutureBuilder<bool>(
-      future: modelManager.isModelInstalled(modelEntry.id),
-      builder: (context, isInstalledSnapshot) {
-        final isInstalled = isInstalledSnapshot.data ?? false;
+    return ListenableBuilder(
+      listenable: modelManager,
+      builder: (context, child) {
+        final isInstalled = modelManager.isModelInstalledSync(modelEntry.id);
         final isSelected = modelManager.selectedModelId == modelEntry.id;
+        final isDownloading = modelManager.isDownloading(modelEntry.id);
+        final progress = modelManager.getDownloadProgress(modelEntry.id);
 
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -98,50 +92,31 @@ class _ModelListItemState extends State<_ModelListItem> {
                 const SizedBox(height: 8),
                 Text('パラメータ: ${modelEntry.parameterSize} / 推奨メモリ: ${modelEntry.recommendedMemoryMb}MB'),
                 const SizedBox(height: 16),
-                if (_isDownloading) ...[
-                  LinearProgressIndicator(value: _progress),
+                if (isDownloading) ...[
+                  LinearProgressIndicator(value: progress),
                   const SizedBox(height: 8),
-                  Text('${(_progress * 100).toStringAsFixed(1)}%'),
+                  Text('${(progress * 100).toStringAsFixed(1)}%'),
                 ],
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    if (!isInstalled && !_isDownloading)
+                    if (!isInstalled && !isDownloading)
                       ElevatedButton.icon(
                         icon: const Icon(Icons.download),
                         label: const Text('ダウンロード'),
                         onPressed: () async {
-                          setState(() {
-                            _isDownloading = true;
-                            _progress = 0.0;
-                          });
                           try {
-                            await modelManager.downloadModel(
-                              modelEntry.id,
-                              onProgress: (p) {
-                                if (mounted) {
-                                  setState(() {
-                                    _progress = p;
-                                  });
-                                }
-                              },
-                            );
+                            await modelManager.downloadModel(modelEntry.id);
                           } catch (e) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text('ダウンロード失敗: $e')),
                               );
                             }
-                          } finally {
-                            if (mounted) {
-                              setState(() {
-                                _isDownloading = false;
-                              });
-                            }
                           }
                         },
                       ),
-                    if (isInstalled && !_isDownloading)
+                    if (isInstalled && !isDownloading)
                       TextButton.icon(
                         icon: const Icon(Icons.delete),
                         label: const Text('削除'),
@@ -149,7 +124,7 @@ class _ModelListItemState extends State<_ModelListItem> {
                           await modelManager.deleteModel(modelEntry.id);
                         },
                       ),
-                    if (isInstalled && !isSelected && !_isDownloading)
+                    if (isInstalled && !isSelected && !isDownloading)
                       ElevatedButton(
                         onPressed: () async {
                           await modelManager.selectModel(modelEntry.id);

@@ -15,4 +15,13 @@ class ModelManagerProvider extends InheritedNotifier<ModelManager> {
     }
     return provider.notifier!;
   }
+
+  static ModelManager read(BuildContext context) {
+    final element = context.getElementForInheritedWidgetOfExactType<ModelManagerProvider>();
+    final provider = element?.widget as ModelManagerProvider?;
+    if (provider == null) {
+      throw Exception('ModelManagerProvider not found in context');
+    }
+    return provider.notifier!;
+  }
 }

@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'app/app.dart';
 import 'app/game_provider.dart';
@@ -17,7 +18,9 @@ void main() async {
   final loader = AssetCaseLoader();
   final caseData = await loader.loadCase('case_001');
 
-  final modelManager = ModelManager(downloadService: LocalModelDownloadService());
+  final downloadService = LocalModelDownloadService();
+  await downloadService.initialize();
+  final modelManager = ModelManager(downloadService: downloadService);
   await modelManager.loadManifest();
 
   final saveService = MemorySaveService();
@@ -28,7 +31,9 @@ void main() async {
   final selectedModel = installedModels.where((m) => m.modelId == modelManager.selectedModelId).firstOrNull;
   
   if (selectedModel != null) {
-    llmService = LlamaCppLlmService(modelPath: selectedModel.filePath);
+    final manifestEntry = modelManager.manifest?.models.where((m) => m.id == selectedModel.modelId).firstOrNull;
+    final modelFamily = manifestEntry?.family ?? 'qwen';
+    llmService = LlamaCppLlmService(modelPath: selectedModel.filePath, modelFamily: modelFamily);
   } else {
     llmService = MockLlmService();
   }
@@ -40,22 +45,51 @@ void main() async {
     caseData: caseData,
   );
 
+  // 現在初期化されているモデルのIDを保持（MockLlmServiceの場合はnull）
+  String? currentModelId = selectedModel?.modelId;
+
   // モデルの選択状態が変更されたらLLMサービスを切り替える
   modelManager.addListener(() async {
     final currentModels = await modelManager.getInstalledModels();
     final newSelected = currentModels.where((m) => m.modelId == modelManager.selectedModelId).firstOrNull;
+    final newModelId = newSelected?.modelId;
     
-    // すでに同じパスで初期化済みなら何もしない（厳密な比較は省略し、再生成する）
+    // 選択モデルIDが変わっていない場合は何もしない（進捗更新時のnotifyによる再生成を避ける）
+    if (newModelId == currentModelId) {
+      return;
+    }
+    
+    currentModelId = newModelId;
+    developer.log('Switching LLM service to model ID: $newModelId', name: 'main');
+    
     LlmService newService;
     if (newSelected != null) {
-      newService = LlamaCppLlmService(modelPath: newSelected.filePath);
+      final manifestEntry = modelManager.manifest?.models.where((m) => m.id == newSelected.modelId).firstOrNull;
+      final modelFamily = manifestEntry?.family ?? 'qwen';
+      newService = LlamaCppLlmService(modelPath: newSelected.filePath, modelFamily: modelFamily);
     } else {
       newService = MockLlmService();
     }
-    await newService.initialize();
     
-    // 古いサービスを破棄
-    gameController.setLlmService(newService);
+    try {
+      await newService.initialize();
+      final oldService = gameController.llmService;
+      gameController.setLlmService(newService);
+      await oldService.dispose();
+      developer.log('Successfully switched to new LLM service.', name: 'main');
+    } catch (e) {
+      developer.log('Failed to initialize new LLM service: $e', name: 'main', error: e);
+      // 初期化に失敗した場合は Mock にフォールバックする
+      if (newService is! MockLlmService) {
+        developer.log('Falling back to MockLlmService due to initialization failure.', name: 'main');
+        final fallbackService = MockLlmService();
+        await fallbackService.initialize();
+        final oldService = gameController.llmService;
+        gameController.setLlmService(fallbackService);
+        await oldService.dispose();
+        currentModelId = null;
+      }
+    }
   });
 
   runApp(

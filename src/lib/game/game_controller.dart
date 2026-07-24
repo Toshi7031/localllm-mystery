@@ -26,6 +26,7 @@ class GameController extends ChangeNotifier {
   
   CaseData get caseData => _caseData;
   SaveService get saveService => _saveService;
+  LlmService get llmService => _llmService;
 
   GameController({
     required SaveService saveService,
@@ -121,6 +122,7 @@ class GameController extends ChangeNotifier {
     required String npcId,
     required String text,
     String? suggestedQuestionId,
+    void Function(String token)? onToken,
   }) async {
     if (_state == null) return NpcReplyResult(text: '');
 
@@ -157,10 +159,11 @@ class GameController extends ChangeNotifier {
       gameState: _state!,
       npcId: npcId,
       inputText: text,
+      modelFamily: _llmService.modelFamily,
     );
 
     final rawReply =
-        await _llmService.generateNpcReply(npcId: npcId, prompt: prompt);
+        await _llmService.generateNpcReply(npcId: npcId, prompt: prompt, onToken: onToken);
     final sanitizedReply = LlmOutputSanitizer.sanitize(rawReply);
 
     _state!.conversationLogs.add(ConversationLogEntry(
@@ -180,6 +183,7 @@ class GameController extends ChangeNotifier {
   Future<EvidenceReactionResult> presentEvidence({
     required String npcId,
     required String evidenceId,
+    void Function(String token)? onToken,
   }) async {
     if (_state == null) {
       return EvidenceReactionResult(text: '', reactionType: 'unrelated');
@@ -221,9 +225,10 @@ class GameController extends ChangeNotifier {
         gameState: _state!,
         npcId: npcId,
         evidenceId: evidenceId,
+        modelFamily: _llmService.modelFamily,
       );
       final rawReply = await _llmService.generateEvidenceReaction(
-          npcId: npcId, evidenceId: evidenceId, prompt: prompt);
+          npcId: npcId, evidenceId: evidenceId, prompt: prompt, onToken: onToken);
       replyText = LlmOutputSanitizer.sanitize(rawReply);
 
       if (reaction != null) {

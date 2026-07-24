@@ -3,6 +3,9 @@ import 'llm_service.dart';
 
 class MockLlmService implements LlmService {
   @override
+  String get modelFamily => 'qwen';
+
+  @override
   Future<void> initialize() async {
     // 開発用モックのため何もしない
   }
@@ -17,10 +20,16 @@ class MockLlmService implements LlmService {
     required String npcId,
     required String prompt,
     LlmGenerationConfig? config,
+    void Function(String token)? onToken,
   }) async {
-    // 擬似的な遅延
-    await Future.delayed(const Duration(milliseconds: 500));
-    return '[Mock] それについてはよくわかりません。';
+    final mockText = '<think>\nこれはモックの思考プロセスです。\n色々考えています...\n</think>\n[Mock] それについてはよくわかりません。';
+    
+    for (int i = 0; i < mockText.length; i++) {
+      await Future.delayed(const Duration(milliseconds: 20));
+      onToken?.call(mockText[i]);
+    }
+    
+    return mockText;
   }
 
   @override
@@ -29,10 +38,16 @@ class MockLlmService implements LlmService {
     required String evidenceId,
     required String prompt,
     LlmGenerationConfig? config,
+    void Function(String token)? onToken,
   }) async {
-    // 擬似的な遅延
-    await Future.delayed(const Duration(milliseconds: 500));
-    return '[Mock] その証拠($evidenceId)は初めて見ました。';
+    final mockText = '<think>\n証拠$evidenceIdについての思考...\n</think>\n[Mock] その証拠($evidenceId)は初めて見ました。';
+    
+    for (int i = 0; i < mockText.length; i++) {
+      await Future.delayed(const Duration(milliseconds: 20));
+      onToken?.call(mockText[i]);
+    }
+    
+    return mockText;
   }
 
   @override

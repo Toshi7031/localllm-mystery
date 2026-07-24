@@ -1,14 +1,19 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:developer' as developer;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'installed_model_info.dart';
 import 'model_manifest.dart';
+import 'model_manifest_entry.dart';
 import 'model_download_service.dart';
 
 class ModelManager extends ChangeNotifier {
   final ModelDownloadService _downloadService;
+  StreamSubscription<DownloadEvent>? _downloadSubscription;
 
   ModelManifest? _manifest;
   ModelManifest? get manifest => _manifest;
@@ -17,8 +22,75 @@ class ModelManager extends ChangeNotifier {
   String? _selectedModelId;
   String? get selectedModelId => _selectedModelId;
 
+  // ダウンロード進捗状況（0.0 〜 1.0）
+  final Map<String, double> _downloadProgresses = {};
+  // ダウンロード中かどうかのフラグ
+  final Map<String, bool> _isDownloading = {};
+
+  double getDownloadProgress(String modelId) => _downloadProgresses[modelId] ?? 0.0;
+  bool isDownloading(String modelId) => _isDownloading[modelId] ?? false;
+
   ModelManager({required ModelDownloadService downloadService})
-      : _downloadService = downloadService;
+      : _downloadService = downloadService {
+    _initDownloadListener();
+  }
+
+  void _initDownloadListener() {
+    _downloadSubscription = _downloadService.downloadEvents.listen((event) {
+      _handleDownloadEvent(event);
+    });
+  }
+
+  void _handleDownloadEvent(DownloadEvent event) async {
+    if (_manifest == null) {
+      try {
+        await loadManifest();
+      } catch (_) {
+        return;
+      }
+    }
+
+    try {
+      final modelEntry = _manifest?.models.firstWhere(
+        (m) => m.fileName == event.fileName,
+      );
+
+      if (modelEntry == null) return;
+
+      final modelId = modelEntry.id;
+
+      switch (event.status) {
+        case DownloadStatus.downloading:
+          _isDownloading[modelId] = true;
+          _downloadProgresses[modelId] = event.progress.clamp(0.0, 1.0);
+          break;
+        case DownloadStatus.completed:
+          _isDownloading[modelId] = false;
+          _downloadProgresses[modelId] = 1.0;
+          
+          if (!_installedModels.any((m) => m.modelId == modelId)) {
+            final destinationPath = await _downloadService.getModelDestinationPath(modelEntry.fileName);
+            _installedModels.add(InstalledModelInfo(
+              modelId: modelId,
+              filePath: destinationPath,
+              fileSize: modelEntry.fileSizeBytes ?? 0,
+              installedAt: DateTime.now(),
+            ));
+            await _saveState();
+          }
+          break;
+        case DownloadStatus.failed:
+        case DownloadStatus.canceled:
+        case DownloadStatus.none:
+          _isDownloading[modelId] = false;
+          _downloadProgresses[modelId] = 0.0;
+          break;
+      }
+      notifyListeners();
+    } catch (_) {
+      // マニフェストにないファイルイベントは無視
+    }
+  }
 
   Future<ModelManifest> loadManifest() async {
     if (_manifest != null) return _manifest!;
@@ -46,12 +118,50 @@ class ModelManager extends ChangeNotifier {
 
     _selectedModelId = prefs.getString('selected_model_id');
     
-    // 実在確認
+    // 実在確認とサイズチェック
     final existingModels = <InstalledModelInfo>[];
     for (final info in _installedModels) {
       if (await _downloadService.isModelInstalled(info.filePath)) {
-        existingModels.add(info);
+        try {
+          final file = File(info.filePath);
+          final actualSize = await file.length();
+          
+          ModelManifestEntry? manifestEntry;
+          if (_manifest != null) {
+            try {
+              manifestEntry = _manifest!.models.firstWhere((m) => m.id == info.modelId);
+            } catch (_) {}
+          }
+          
+          if (manifestEntry != null && manifestEntry.fileSizeBytes != null) {
+            final expectedSize = manifestEntry.fileSizeBytes!;
+            // 期待サイズの99%以上であればインストール済みとする（安全のために僅かなマージン）
+            if (actualSize >= expectedSize * 0.99) {
+              existingModels.add(info);
+              continue;
+            } else {
+              developer.log(
+                'Model file size mismatch for ${info.modelId}. Expected: $expectedSize, Actual: $actualSize. Deleting...',
+                name: 'ModelManager',
+              );
+            }
+          } else if (actualSize > 0) {
+            // マニフェストに期待サイズが無い場合は、0バイトより大きければOKとする
+            existingModels.add(info);
+            continue;
+          }
+        } catch (e) {
+          developer.log('Error verifying file ${info.filePath}: $e', name: 'ModelManager');
+        }
       }
+      
+      // 実在しない、またはサイズ検証に失敗したモデルファイルはディスクから削除
+      try {
+        final file = File(info.filePath);
+        if (await file.exists()) {
+          await file.delete();
+        }
+      } catch (_) {}
     }
     
     if (existingModels.length != _installedModels.length) {
@@ -92,6 +202,10 @@ class ModelManager extends ChangeNotifier {
     return _installedModels.any((m) => m.modelId == modelId);
   }
 
+  bool isModelInstalledSync(String modelId) {
+    return _installedModels.any((m) => m.modelId == modelId);
+  }
+
   Future<String?> getModelPath(String modelId) async {
     try {
       final info = _installedModels.firstWhere((m) => m.modelId == modelId);
@@ -124,26 +238,49 @@ class ModelManager extends ChangeNotifier {
 
   Future<void> downloadModel(String modelId, {Function(double)? onProgress}) async {
     if (_manifest == null) await loadManifest();
+    if (isDownloading(modelId)) return;
     
     final modelEntry = _manifest!.models.firstWhere((m) => m.id == modelId);
-    
     final destinationPath = await _downloadService.getModelDestinationPath(modelEntry.fileName);
 
-    await _downloadService.downloadModel(
-      modelEntry.downloadUrl,
-      destinationPath,
-      onProgress: onProgress,
-    );
-
-
-    _installedModels.add(InstalledModelInfo(
-      modelId: modelId,
-      filePath: destinationPath,
-      fileSize: modelEntry.fileSizeBytes ?? 0,
-      installedAt: DateTime.now(),
-    ));
-
-    await _saveState();
+    _isDownloading[modelId] = true;
+    _downloadProgresses[modelId] = 0.0;
     notifyListeners();
+
+    try {
+      await _downloadService.downloadModel(
+        modelEntry.downloadUrl,
+        destinationPath,
+        onProgress: (p) {
+          _downloadProgresses[modelId] = p.clamp(0.0, 1.0);
+          notifyListeners();
+          if (onProgress != null) {
+            onProgress(p);
+          }
+        },
+      );
+
+      if (!_installedModels.any((m) => m.modelId == modelId)) {
+        _installedModels.add(InstalledModelInfo(
+          modelId: modelId,
+          filePath: destinationPath,
+          fileSize: modelEntry.fileSizeBytes ?? 0,
+          installedAt: DateTime.now(),
+        ));
+        await _saveState();
+      }
+    } catch (e) {
+      _downloadProgresses[modelId] = 0.0;
+      rethrow;
+    } finally {
+      _isDownloading[modelId] = false;
+      notifyListeners();
+    }
+  }
+
+  @override
+  void dispose() {
+    _downloadSubscription?.cancel();
+    super.dispose();
   }
 }

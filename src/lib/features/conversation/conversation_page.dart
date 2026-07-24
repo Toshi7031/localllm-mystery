@@ -13,6 +13,58 @@ class _ConversationPageState extends State<ConversationPage> {
   final _textController = TextEditingController();
   final _scrollController = ScrollController();
   bool _isLoading = false;
+  String? _streamingRawText;
+
+  String _getMaskedText(String rawText) {
+    if (!rawText.contains('<think>')) {
+      return _stripPrefixes(rawText);
+    }
+
+    final buffer = StringBuffer();
+    bool insideThink = false;
+    int currentIndex = 0;
+    
+    while (currentIndex < rawText.length) {
+      if (!insideThink) {
+        final nextThink = rawText.indexOf('<think>', currentIndex);
+        if (nextThink == -1) {
+          buffer.write(rawText.substring(currentIndex));
+          break;
+        } else {
+          buffer.write(rawText.substring(currentIndex, nextThink));
+          insideThink = true;
+          currentIndex = nextThink + '<think>'.length;
+        }
+      } else {
+        final nextEndThink = rawText.indexOf('</think>', currentIndex);
+        if (nextEndThink == -1) {
+          final textToMask = rawText.substring(currentIndex);
+          buffer.write(textToMask.replaceAll(RegExp(r'[^\s]'), '█'));
+          break;
+        } else {
+          final textToMask = rawText.substring(currentIndex, nextEndThink);
+          buffer.write(textToMask.replaceAll(RegExp(r'[^\s]'), '█'));
+          insideThink = false;
+          currentIndex = nextEndThink + '</think>'.length;
+        }
+      }
+    }
+    
+    var text = buffer.toString().trim();
+    return _stripPrefixes(text);
+  }
+
+  String _stripPrefixes(String text) {
+    var stripped = text;
+    final prefixesToStrip = ['プレイヤー:', 'あなた:', '#'];
+    for (final prefix in prefixesToStrip) {
+      final index = stripped.indexOf(prefix);
+      if (index != -1) {
+        stripped = stripped.substring(0, index);
+      }
+    }
+    return stripped.isEmpty && _streamingRawText != null && _streamingRawText!.isNotEmpty ? '...' : stripped;
+  }
 
   @override
   void dispose() {
@@ -38,6 +90,7 @@ class _ConversationPageState extends State<ConversationPage> {
 
     setState(() {
       _isLoading = true;
+      _streamingRawText = '';
     });
 
     final controller = GameProvider.of(context);
@@ -47,11 +100,20 @@ class _ConversationPageState extends State<ConversationPage> {
       npcId: widget.npcId,
       text: text,
       suggestedQuestionId: suggestedQuestionId,
+      onToken: (token) {
+        if (mounted) {
+          setState(() {
+            _streamingRawText = (_streamingRawText ?? '') + token;
+          });
+          _scrollToBottom();
+        }
+      }
     );
 
     if (mounted) {
       setState(() {
         _isLoading = false;
+        _streamingRawText = null;
       });
       _scrollToBottom();
     }
@@ -103,16 +165,26 @@ class _ConversationPageState extends State<ConversationPage> {
     if (selectedEvidenceId != null && mounted) {
       setState(() {
         _isLoading = true;
+        _streamingRawText = '';
       });
 
       final reaction = await controller.presentEvidence(
         npcId: widget.npcId,
         evidenceId: selectedEvidenceId,
+        onToken: (token) {
+          if (mounted) {
+            setState(() {
+              _streamingRawText = (_streamingRawText ?? '') + token;
+            });
+            _scrollToBottom();
+          }
+        }
       );
 
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _streamingRawText = null;
         });
         showDialog(
           context: context,
@@ -196,8 +268,31 @@ class _ConversationPageState extends State<ConversationPage> {
             child: ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.all(16),
-              itemCount: logs.length,
+              itemCount: logs.length + (_streamingRawText != null ? 1 : 0),
               itemBuilder: (context, index) {
+                if (_streamingRawText != null && index == logs.length) {
+                  return Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      padding: const EdgeInsets.all(12),
+                      constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.7),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withAlpha(51),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.withAlpha(100), width: 1),
+                      ),
+                      child: Text(
+                        _getMaskedText(_streamingRawText!).isEmpty
+                            ? '思考中… (思考内容は伏せ字で表示されます)'
+                            : _getMaskedText(_streamingRawText!),
+                        style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                      ),
+                    ),
+                  );
+                }
+
                 final log = logs[index];
                 final isPlayer = log.speaker == 'player';
                 final isSystem = log.speaker == 'system';

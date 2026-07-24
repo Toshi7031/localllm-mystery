@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:src/core/model/model_download_service.dart';
 import 'package:src/core/model/model_manager.dart';
@@ -10,6 +11,7 @@ void main() {
     late ModelManager modelManager;
 
     setUp(() {
+      SharedPreferences.setMockInitialValues({});
       modelManager = ModelManager(downloadService: MockModelDownloadService());
     });
 

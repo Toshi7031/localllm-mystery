@@ -694,7 +694,7 @@ class LlmGenerationConfig {
   final List<String> stopSequences;
 
   const LlmGenerationConfig({
-    this.maxTokens = 96,
+    this.maxTokens = 2048,
     this.temperature = 0.7,
     this.topP = 0.9,
     this.contextSize = 2048,
