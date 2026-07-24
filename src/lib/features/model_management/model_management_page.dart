@@ -1,5 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../app/game_provider.dart';
 import '../../app/model_manager_provider.dart';
+import '../../core/llm/llama_cpp_llm_service.dart';
 import '../../core/model/model_manifest_entry.dart';
 
 class ModelManagementPage extends StatelessWidget {
@@ -26,28 +29,50 @@ class ModelManagementPage extends StatelessWidget {
             return const Center(child: Text('モデルが見つかりません。'));
           }
 
-          return Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12.0),
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                width: double.infinity,
-                child: const Text(
-                  '現在は開発用MockLlmServiceで動作しています。\nローカルGGUFモデル連携は後続実装予定です。',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
+          final activeLlm = GameProvider.of(context).llmService;
+          String engineStatus = '現在: MockLlmService (テスト用)';
+          if (activeLlm is LlamaCppLlmService) {
+            engineStatus = activeLlm.gpuStatusSummary;
+          } else {
+            final c = Platform.numberOfProcessors;
+            final threads = (c * 0.75).round().clamp(2, 8);
+            engineStatus = 'OS: ${Platform.operatingSystem} | Cores: $c | 推奨Threads: $threads | GPU Target: 99 layers';
+          }
+
+          return SafeArea(
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12.0),
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  width: double.infinity,
+                  child: Column(
+                    children: [
+                      const Text(
+                        '【LLM 動作ステータス】',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        engineStatus,
+                        style: Theme.of(context).textTheme.bodySmall,
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: manifest.models.length,
-                  itemBuilder: (context, index) {
-                    final modelEntry = manifest.models[index];
-                    return _ModelListItem(modelEntry: modelEntry);
-                  },
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: manifest.models.length,
+                    itemBuilder: (context, index) {
+                      final modelEntry = manifest.models[index];
+                      return _ModelListItem(modelEntry: modelEntry);
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         },
       ),
